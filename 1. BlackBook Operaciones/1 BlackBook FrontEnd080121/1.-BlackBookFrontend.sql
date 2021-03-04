@@ -1,5 +1,5 @@
 declare   @from date = '2020-09-01';
-declare   @to date = '2021-01-01';
+declare   @to date = '2021-01-31';
 
 create table #fechasOtEntrega
 (
@@ -82,7 +82,7 @@ select spoolid, FechaEmbarque, aniomes  from (
 	select A.spoolid
 	, CONVERT(date, e.fechaenvio) as FechaEmbarque, cast( cast(year(e.fechaenvio) as nvarchar) +'-'+ cast(month(e.fechaenvio) as nvarchar) +'-'+ cast( 01 as nvarchar) as date) as aniomes 
 	from spool A
-	inner join OrdenTrabajospool B on A.SpoolID= B.SpoolID and a.campo7 != 'GRANEL' and a.campo7 != 'IWS' and a.campo7 != 'SOPORTE' 
+	inner join OrdenTrabajospool B on A.SpoolID= B.SpoolID and (a.campo7 not in ('GRANEL','SOPORTE','IWS') or a.campo7 is null)
 	left join [sam3].[steelgo-sam3].[dbo].[Sam3_Embarque_DetalleCarga_Plana] C with(nolock) on a.spoolid = c.spoolid and (c.activo=1 or c.revisado=1)
 	left join [sam3].[steelgo-sam3].[dbo].[Sam3_Embarque_Detalle] D  with(nolock) on d.CargaPlanaID = c.CargaPlanaID and d.activo=1
 	left join [sam3].[steelgo-sam3].[dbo].[Sam3_Embarque_CapturaEnvio] E with(nolock) on e.EmbarqueID=d.EmbarqueID 
@@ -150,8 +150,8 @@ from (
 insert into #fechTransfePintura(spoolid, fechaTransfePintura)
 	select spoolid, FechaTransferenciaPintura
 	from spool with(nolock)
-	where  campo7 != 'GRANEL' and campo7 != 'IWS' and campo7 != 'SOPORTE'  
-	and FechaTransferenciaPintura >= @from and FechaTransferenciaPintura <= @to 
+	where   FechaTransferenciaPintura >= @from and FechaTransferenciaPintura <= @to 
+	and (campo7 not in ('GRANEL','SOPORTE','IWS') or campo7 is null)
 
 
 insert into #CicloFrontend (Aniomes, CicloFrontEnd, SpooldormidosCF)
@@ -176,7 +176,7 @@ select aniomes, cast( cast( (sum(rechazados) * 100.0)as decimal) / count(spoolid
 	from (
 		select  a.SpoolID, d.fechainspeccion, d.resultadoid 
 		from spool a with(nolock)
-		inner join OrdenTrabajospool b with(nolock) on a.spoolid = b.SpoolID and a.campo7 != 'GRANEL' and a.campo7 != 'IWS' and a.campo7 != 'SOPORTE' 
+		inner join OrdenTrabajospool b with(nolock) on a.spoolid = b.SpoolID and (a.campo7 not in ('GRANEL','SOPORTE','IWS') or a.campo7 is null)
 		inner join JuntaWorkstatus c with(nolock) on b.OrdenTrabajoSpoolID= c.OrdenTrabajoSpoolID
 		inner join sam3.[steelgo-sam3].dbo.sam3_inspeccionvisual d on c.JuntaWorkstatusID = d.JuntaWorkstatusID and (d.activo=1 or d.historico=1)
 		inner join Proyecto e with(nolock) on a.ProyectoID= e.ProyectoID and e.ActivoCalculos=1
@@ -194,7 +194,7 @@ from
 			case when d.resultadoid=2 then 1 else 0 end Rechazado
 			, cast( cast(year( d.fechainspeccion) as nvarchar) +'-'+ cast(month( d.fechainspeccion) as nvarchar) +'-'+ cast( 01 as nvarchar) as date) as aniomes
 		from spool a with(nolock) 
-		inner join OrdenTrabajospool b with(nolock) on a.spoolid = b.SpoolID and a.campo7 != 'GRANEL' and a.campo7 != 'IWS' and a.campo7 != 'SOPORTE' 
+		inner join OrdenTrabajospool b with(nolock) on a.spoolid = b.SpoolID and (a.campo7 not in ('GRANEL','SOPORTE','IWS') or a.campo7 is null)
 		inner join sam3.[steelgo-sam3].dbo.Sam3_InspeccionDimensional d with(nolock) on d.ordentrabajospoolid = b.OrdenTrabajoSpoolID
 		where d.fechainspeccion >= @from and d.fechainspeccion <= @to 
 		and (d.activo=1 or d.defectoid is not null)
