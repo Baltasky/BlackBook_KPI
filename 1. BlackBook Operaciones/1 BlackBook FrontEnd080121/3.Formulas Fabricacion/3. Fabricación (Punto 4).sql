@@ -14,6 +14,12 @@ create table #OkFab
 	FechaOkFabricacion date
 )
 
+create table #SpoolDormidosOkFab
+( 
+	aniomes date,
+	SpooldormidoFab int 
+)
+
 insert into #fechasOtEntrega (spoolid, fechaotentrega)
 	select e.SpoolID , Convert(DATE, min(e.FechaModificacion)) as FechaOtEntrega
 	from SAM3.[STEELGO-SAM3].DBO.Sam3_Cuadrante  a with(nolock)
@@ -28,7 +34,7 @@ insert into #OkFab( spoolid, FechaOkFabricacion)
 	where campo7 != 'GRANEL' and campo7 != 'IWS' and campo7 != 'SOPORTE' 
 	and FechaOkFabricacion >=  @from  and FechaOkFabricacion <= @to
 
-
+insert into #SpoolDormidosOkFab (aniomes, SpooldormidoFab)
 select aniomes, sum(dormidos) as Spooldormidos  from(
 	select aniomes
 	,case when diferencia > 6 then 1 else 0 end as dormidos
@@ -43,3 +49,4 @@ select aniomes, sum(dormidos) as Spooldormidos  from(
 
 drop table #fechasOtEntrega
 drop table #okfab
+drop table #SpoolDormidosOkFab

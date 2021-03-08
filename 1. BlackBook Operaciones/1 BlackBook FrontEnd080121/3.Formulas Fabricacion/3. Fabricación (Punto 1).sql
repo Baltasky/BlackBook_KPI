@@ -8,11 +8,18 @@ create table #fechasOtEntrega
 	fechaotentrega date
 )
 
-create table #CicloFabricacion
+create table #FechaInspeccion
 (
 	spoolid int,
 	FechaInspeccion date
 )
+
+create table #FechaFabricacion
+(	
+	aniome date,
+	Ciclofabricacion int
+)
+
 
 
 insert into #fechasOtEntrega (spoolid, fechaotentrega)
@@ -25,7 +32,7 @@ insert into #fechasOtEntrega (spoolid, fechaotentrega)
 	inner join Spool f with(nolock) on f.SpoolID = e.SpoolID
 	where B.ZonaID=3031 group by e.SpoolID
 
-insert into #CicloFabricacion (spoolid, FechaInspeccion)
+insert into #FechaInspeccion (spoolid, FechaInspeccion)
 	select  a.SpoolID,  convert(date,max(d.fechainspeccion)) as FechaInspeccion
 	from spool a with(nolock)
 	inner join OrdenTrabajospool b with(nolock) on a.spoolid = b.SpoolID and a.campo7 != 'GRANEL' and a.campo7 != 'IWS' and a.campo7 != 'SOPORTE' 
@@ -33,17 +40,18 @@ insert into #CicloFabricacion (spoolid, FechaInspeccion)
 	where d.fechainspeccion >= @from and d.fechainspeccion <= @to
 	group by a.SpoolID, a.Nombre
 
-
+insert into #FechaFabricacion(aniome, Ciclofabricacion)
 	select aniomes, cast( cast( sum(diferencia) as decimal) /  count(spoolid) as decimal) as CicloFabricacion  from (
 		select a.spoolid, DATEDIFF(day, b.fechaotentrega, a.FechaInspeccion) as diferencia
 		, cast( cast(year(a.FechaInspeccion) as nvarchar) +'-'+ cast(month(a.FechaInspeccion) as nvarchar) +'-'+ cast( 01 as nvarchar) as date) as aniomes
-		from  #CicloFabricacion a with(nolock)
+		from  #FechaInspeccion a with(nolock)
 		inner join #fechasOtEntrega b with(nolock) on a.spoolid = b.spoolid
  ) x group by aniomes order by aniomes
 
+ select * from #FechaFabricacion
 
 drop table #fechasOtEntrega
-drop table #CicloFabricacion
-
+drop table #FechaInspeccion
+drop table #FechaFabricacion
 
  

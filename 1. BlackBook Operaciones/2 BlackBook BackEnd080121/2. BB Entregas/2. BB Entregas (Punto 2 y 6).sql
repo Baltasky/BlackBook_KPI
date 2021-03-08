@@ -1,5 +1,5 @@
 declare   @from date = '2020-09-01';
-declare   @to date = '2021-01-31';
+declare   @to date = '2021-02-28';
 
 
 
