@@ -154,9 +154,9 @@ from(
 		from (
 			select a.spoolid, datediff(day,FechaTransferenciaPintura,FechaLiberadoPintura) as diferentes
 			,cast( cast(year(FechaLiberadoPintura) as nvarchar) +'-'+ cast(month(FechaLiberadoPintura) as nvarchar) +'-'+ cast( 01 as nvarchar) as date) as Aniomes
-			from spool a
-			inner join OrdenTrabajoSpool b on a.SpoolID = b.SpoolID and (a.campo7 not in ('GRANEL','SOPORTE','IWS') or a.campo7 is null)
-			inner join WorkstatusSpool c on b.OrdenTrabajoSpoolID = c.OrdenTrabajoSpoolID 
+			from spool a with(nolock)
+			inner join OrdenTrabajoSpool b with(nolock) on a.SpoolID = b.SpoolID and (a.campo7 not in ('GRANEL','SOPORTE','IWS') or a.campo7 is null)
+			inner join WorkstatusSpool c with(nolock) on b.OrdenTrabajoSpoolID = c.OrdenTrabajoSpoolID 
 			where FechaLiberadoPintura >=@from and FechaLiberadoPintura <=@to
 	)x
 )y group by Aniomes
@@ -167,10 +167,10 @@ select A.Aniomes, a.CicloBackEnd, A.SpooldormidosBE, b.PaintQualityLevel, c.tons
 from #CicloBackEnd a with(nolock)
 inner join #CalidadPintura b with(nolock) on a.Aniomes=b.aniomes
 inner join #TonsXembarque c with(nolock) on a.Aniomes= c.aniomes
-inner join #portafolio d on a.Aniomes=d.aniomes
-inner join #CicloEntrega1 e on a.Aniomes=e.aniomes
-inner join #cicloentrega2 f on a.Aniomes=f.aniomes
-inner join #CicloPintura g on a.Aniomes=g.aniomes
+inner join #portafolio d with(nolock) on a.Aniomes=d.aniomes
+inner join #CicloEntrega1 e with(nolock) on a.Aniomes=e.aniomes
+inner join #cicloentrega2 f with(nolock) on a.Aniomes=f.aniomes
+inner join #CicloPintura g with(nolock) on a.Aniomes=g.aniomes
 order by a.AnioMes desc
 
 
