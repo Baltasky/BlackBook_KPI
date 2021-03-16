@@ -115,7 +115,8 @@ select spoolid,   FechaEmbarque  , aniomes
 from(
 select spoolid, FechaEmbarque, aniomes  from (
 	select A.spoolid
-	, CONVERT(date, e.fechaenvio) as FechaEmbarque, cast( cast(year(e.fechaenvio) as nvarchar) +'-'+ cast(month(e.fechaenvio) as nvarchar) +'-'+ cast( 01 as nvarchar) as date) as aniomes 
+	, CONVERT(date, e.fechaenvio) as FechaEmbarque
+	, cast( cast(year(e.fechaenvio) as nvarchar) +'-'+ cast(month(e.fechaenvio) as nvarchar) +'-'+ cast( 01 as nvarchar) as date) as aniomes 
 	from spool A
 	inner join OrdenTrabajospool B on A.SpoolID= B.SpoolID and (a.campo7 not in ('GRANEL','SOPORTE','IWS') or a.campo7 is null)
 	left join [sam3].[steelgo-sam3].[dbo].[Sam3_Embarque_DetalleCarga_Plana] C with(nolock) on a.spoolid = c.spoolid and (c.activo=1 or c.revisado=1)
