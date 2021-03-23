@@ -1,3 +1,6 @@
+declare @from date = '2020-09-01'
+declare @to date = '2021-02-28'
+
 
 Create table #Reportes
 (
@@ -6,6 +9,8 @@ Create table #Reportes
 	Reporte nvarchar(250),
 	Fecha date 
 )
+
+
 
 insert into #Reportes
 select distinct p.proyectoid,tp.Nombre,rp.NumeroReporte,rp.FechaReporte 
@@ -66,14 +71,25 @@ where p.ActivoCalculos=1
 and FechaPullOff is not null
 group by p.proyectoid,ps.ReportePullOff,FechaPullOff
 
+union 
+select p.proyectoid, 'Holiday', campo73, convert(date,campo72) 
+from spool s
+inner join Proyecto p on p.ProyectoID=s.ProyectoID
+where p.ActivoCalculos=1
+and campo72 is not null	
+group by p.proyectoid, campo73, convert(date,campo72) 
 
-select  count(b.Archivo) *100.0/count(a.Reporte) as PorcDig,count(a.Reporte) TotalReportes,count(b.Archivo) TotalDigitalizado
-from #Reportes a
-inner join Proyecto p on p.ProyectoID=a.Proyecto
-left join ArchivosPorProyecto b on a.Proyecto=b.ProyectoID and a.Reporte=b.Archivo collate Latin1_General_CI_AS and FechaDigitalizacion<'20210301'
-where a.Fecha>='20210201'
-and a.Fecha<'20210301'
 
 
+
+select aniomes, cast((count(Archivo) *100.0) /count(Reporte)  as decimal (5,2)) as PorcDig from (
+	select  a.Reporte, b.Archivo
+	,cast( cast(year(a.Fecha) as nvarchar) +'-'+ cast(month(a.Fecha) as nvarchar) +'-'+ cast( 01 as nvarchar) as date) as aniomes
+	from #Reportes a
+	inner join Proyecto p on p.ProyectoID=a.Proyecto
+	left join ArchivosPorProyecto b on a.Proyecto=b.ProyectoID and a.Reporte=b.Archivo collate Latin1_General_CI_AS 
+	where a.Fecha>= @from
+	and a.Fecha< @to 
+) x group by aniomes order by aniomes
 
 drop table #Reportes
